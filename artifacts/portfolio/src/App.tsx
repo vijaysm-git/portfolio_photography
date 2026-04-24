@@ -1,32 +1,49 @@
+import { useEffect } from "react";
 import { Switch, Route, Router as WouterRouter } from "wouter";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { queryClient } from "@/lib/queryClient";
+import { PublicLayout } from "@/components/layouts/PublicLayout";
+import Home from "@/pages/Home";
+import Portfolio from "@/pages/Portfolio";
+import ProjectDetail from "@/pages/ProjectDetail";
+import Contact from "@/pages/Contact";
+import AdminLogin from "@/pages/AdminLogin";
+import AdminDashboard from "@/pages/AdminDashboard";
+import AdminPortfolio from "@/pages/AdminPortfolio";
+import AdminTestimonials from "@/pages/AdminTestimonials";
+import AdminInquiries from "@/pages/AdminInquiries";
 import NotFound from "@/pages/not-found";
 
-const queryClient = new QueryClient();
-
-function Home() {
-  return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-gray-900">Replit Agent is building...</h1>
-        <p className="mt-2 text-sm text-gray-600">Your app will appear here once it's ready.</p>
-      </div>
-    </div>
-  );
+function PublicRoute({ children }: { children: React.ReactNode }) {
+  return <PublicLayout>{children}</PublicLayout>;
 }
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
-      <Route component={NotFound} />
+      <Route path="/admin/login"><AdminLogin /></Route>
+      <Route path="/admin"><AdminDashboard /></Route>
+      <Route path="/admin/portfolio"><AdminPortfolio /></Route>
+      <Route path="/admin/testimonials"><AdminTestimonials /></Route>
+      <Route path="/admin/inquiries"><AdminInquiries /></Route>
+
+      <Route path="/"><PublicRoute><Home /></PublicRoute></Route>
+      <Route path="/portfolio"><PublicRoute><Portfolio /></PublicRoute></Route>
+      <Route path="/portfolio/:id"><PublicRoute><ProjectDetail /></PublicRoute></Route>
+      <Route path="/contact"><PublicRoute><Contact /></PublicRoute></Route>
+
+      <Route><PublicRoute><NotFound /></PublicRoute></Route>
     </Switch>
   );
 }
 
 function App() {
+  useEffect(() => {
+    document.documentElement.classList.add("dark");
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>

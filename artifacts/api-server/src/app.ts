@@ -1,10 +1,13 @@
 import express, { type Express } from "express";
 import cors from "cors";
+import session from "express-session";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
 
 const app: Express = express();
+
+app.set("trust proxy", 1);
 
 app.use(
   pinoHttp({
@@ -25,9 +28,25 @@ app.use(
     },
   }),
 );
-app.use(cors());
-app.use(express.json());
+app.use(cors({ origin: true, credentials: true }));
+app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
+
+const sessionSecret =
+  process.env.SESSION_SECRET ?? "dev-only-insecure-fallback-secret";
+app.use(
+  session({
+    secret: sessionSecret,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: false,
+      maxAge: 1000 * 60 * 60 * 24 * 30,
+    },
+  }),
+);
 
 app.use("/api", router);
 
