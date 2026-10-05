@@ -313,21 +313,38 @@ metadata here, then uploads the file directly to the returned URL.
 
  * @summary Request a presigned URL for file upload
  */
+export const requestUploadUrlBodyNameMax = 255;
+
+export const requestUploadUrlBodySizeMax = 15728640;
 
 export const RequestUploadUrlBody = zod.object({
-  name: zod.string().min(1),
-  size: zod.number().min(1),
-  contentType: zod.string().min(1),
+  name: zod.string().min(1).max(requestUploadUrlBodyNameMax),
+  size: zod.number().min(1).max(requestUploadUrlBodySizeMax),
+  contentType: zod.enum([
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/avif",
+  ]),
 });
+
+export const requestUploadUrlResponseMetadataNameMax = 255;
+
+export const requestUploadUrlResponseMetadataSizeMax = 15728640;
 
 export const RequestUploadUrlResponse = zod.object({
   uploadURL: zod.string().url(),
   objectPath: zod.string(),
   metadata: zod
     .object({
-      name: zod.string().min(1),
-      size: zod.number().min(1),
-      contentType: zod.string().min(1),
+      name: zod.string().min(1).max(requestUploadUrlResponseMetadataNameMax),
+      size: zod.number().min(1).max(requestUploadUrlResponseMetadataSizeMax),
+      contentType: zod.enum([
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/avif",
+      ]),
     })
     .optional(),
 });

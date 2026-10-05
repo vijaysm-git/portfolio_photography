@@ -53,7 +53,7 @@ router.delete(
       return;
     }
     await db.delete(testimonialsTable).where(eq(testimonialsTable.id, id));
-    res.json({ ok: true });
+    res.sendStatus(204);
   },
 );
 

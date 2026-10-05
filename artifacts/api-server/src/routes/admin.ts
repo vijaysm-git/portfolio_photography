@@ -1,4 +1,5 @@
 import { Router, type IRouter, type Request, type Response } from "express";
+import { timingSafeEqual } from "crypto";
 import { sql } from "drizzle-orm";
 import {
   db,
@@ -10,6 +11,15 @@ import { AdminLoginBody } from "@workspace/api-zod";
 import { requireAdmin } from "../middleware/requireAdmin";
 
 const router: IRouter = Router();
+
+function matchesSecret(candidate: string, expected: string): boolean {
+  const candidateBuffer = Buffer.from(candidate);
+  const expectedBuffer = Buffer.from(expected);
+  return (
+    candidateBuffer.length === expectedBuffer.length &&
+    timingSafeEqual(candidateBuffer, expectedBuffer)
+  );
+}
 
 router.post("/admin/login", async (req: Request, res: Response) => {
   const parsed = AdminLoginBody.safeParse(req.body);
@@ -24,17 +34,36 @@ router.post("/admin/login", async (req: Request, res: Response) => {
     res.status(500).json({ error: "Admin credentials not configured" });
     return;
   }
-  if (email !== adminEmail || password !== adminPassword) {
+  if (email !== adminEmail || !matchesSecret(password, adminPassword)) {
     res.status(401).json({ error: "Invalid email or password" });
     return;
   }
-  req.session.isAdmin = true;
-  req.session.adminEmail = email;
-  res.json({ authenticated: true, email });
+
+  req.session.regenerate((error) => {
+    if (error) {
+      req.log.error({ err: error }, "Failed to rotate admin session");
+      res.status(500).json({ error: "Failed to sign in" });
+      return;
+    }
+    req.session.isAdmin = true;
+    req.session.adminEmail = adminEmail;
+    res.json({ authenticated: true, email: adminEmail });
+  });
 });
 
 router.post("/admin/logout", (req: Request, res: Response) => {
-  req.session.destroy(() => {
+  req.session.destroy((error) => {
+    if (error) {
+      req.log.error({ err: error }, "Failed to destroy admin session");
+      res.status(500).json({ error: "Failed to sign out" });
+      return;
+    }
+    res.clearCookie("connect.sid", {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+    });
     res.json({ ok: true });
   });
 });

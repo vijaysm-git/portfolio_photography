@@ -11,6 +11,7 @@ import type { Service, ServiceInput } from "@workspace/api-client-react";
 import { ArrowDown, ArrowUp, ImagePlus, LoaderCircle, Pencil, Plus, RefreshCw, Trash2, X } from "lucide-react";
 import { ImageUploader } from "@/components/ImageUploader";
 import { imageUrl } from "@/lib/imageUrl";
+import { AdminLayout } from "@/components/layouts/AdminLayout";
 
 type ServiceDraft = { title: string; description: string; image: string; sortOrder: number };
 const EMPTY_DRAFT: ServiceDraft = { title: "", description: "", image: "", sortOrder: 0 };
@@ -112,6 +113,7 @@ export default function AdminServices() {
   }
 
   return (
+    <AdminLayout>
     <div className="mx-auto max-w-6xl" data-testid="admin-services-page">
       <header className="mb-9 flex flex-wrap items-end justify-between gap-5 border-b border-border pb-7">
         <div>
@@ -203,5 +205,6 @@ export default function AdminServices() {
       {reorderError && <p className="mt-5 border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive" role="alert" data-testid="error-service-reorder">{reorderError}</p>}
       {updateService.isPending && <p className="mt-4 text-xs text-muted-foreground" role="status" data-testid="status-saving-order">Saving the new order…</p>}
     </div>
+    </AdminLayout>
   );
 }

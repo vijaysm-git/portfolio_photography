@@ -167,13 +167,28 @@ export interface AdminStats {
   categoryCounts: CategoryCount[];
 }
 
+export type UploadUrlRequestContentType =
+  (typeof UploadUrlRequestContentType)[keyof typeof UploadUrlRequestContentType];
+
+export const UploadUrlRequestContentType = {
+  "image/jpeg": "image/jpeg",
+  "image/png": "image/png",
+  "image/webp": "image/webp",
+  "image/avif": "image/avif",
+} as const;
+
 export interface UploadUrlRequest {
-  /** @minLength 1 */
+  /**
+   * @minLength 1
+   * @maxLength 255
+   */
   name: string;
-  /** @minimum 1 */
+  /**
+   * @minimum 1
+   * @maximum 15728640
+   */
   size: number;
-  /** @minLength 1 */
-  contentType: string;
+  contentType: UploadUrlRequestContentType;
 }
 
 export interface UploadUrlResponse {

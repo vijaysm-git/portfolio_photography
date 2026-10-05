@@ -27,4 +27,5 @@ export * from "./serviceInput";
 export * from "./testimonial";
 export * from "./testimonialInput";
 export * from "./uploadUrlRequest";
+export * from "./uploadUrlRequestContentType";
 export * from "./uploadUrlResponse";

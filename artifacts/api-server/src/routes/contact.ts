@@ -62,7 +62,7 @@ router.delete(
     await db
       .delete(contactSubmissionsTable)
       .where(eq(contactSubmissionsTable.id, id));
-    res.json({ ok: true });
+    res.sendStatus(204);
   },
 );
 

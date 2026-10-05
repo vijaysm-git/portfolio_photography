@@ -5,12 +5,18 @@
  * Photography portfolio API
  * OpenAPI spec version: 0.1.0
  */
+import type { UploadUrlRequestContentType } from "./uploadUrlRequestContentType";
 
 export interface UploadUrlRequest {
-  /** @minLength 1 */
+  /**
+   * @minLength 1
+   * @maxLength 255
+   */
   name: string;
-  /** @minimum 1 */
+  /**
+   * @minimum 1
+   * @maximum 15728640
+   */
   size: number;
-  /** @minLength 1 */
-  contentType: string;
+  contentType: UploadUrlRequestContentType;
 }

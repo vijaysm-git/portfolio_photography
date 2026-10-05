@@ -4,6 +4,23 @@ import { Button } from "@/components/ui/button";
 import { Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
 import { imageUrl } from "@/lib/imageUrl";
 
+const MAX_IMAGE_BYTES = 15 * 1024 * 1024;
+type SupportedImageContentType =
+  | "image/jpeg"
+  | "image/png"
+  | "image/webp"
+  | "image/avif";
+const SUPPORTED_IMAGE_TYPES = new Set<string>([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/avif",
+]);
+
+function isSupportedImageType(type: string): type is SupportedImageContentType {
+  return SUPPORTED_IMAGE_TYPES.has(type);
+}
+
 type SingleProps = {
   mode: "single";
   value: string | null;
@@ -25,12 +42,18 @@ export function ImageUploader(props: SingleProps | MultipleProps) {
   const requestUrl = useRequestUploadUrl();
 
   async function uploadOne(file: File): Promise<string> {
+    if (!isSupportedImageType(file.type)) {
+      throw new Error("Choose a JPEG, PNG, WebP, or AVIF image.");
+    }
+    if (file.size < 1 || file.size > MAX_IMAGE_BYTES) {
+      throw new Error("Images must be smaller than 15 MB.");
+    }
     const result = await requestUrl.mutateAsync({
-      data: { name: file.name, size: file.size, contentType: file.type || "application/octet-stream" },
+      data: { name: file.name, size: file.size, contentType: file.type },
     });
     const putRes = await fetch(result.uploadURL, {
       method: "PUT",
-      headers: { "Content-Type": file.type || "application/octet-stream" },
+      headers: { "Content-Type": file.type },
       body: file,
     });
     if (!putRes.ok) {
@@ -134,7 +157,7 @@ export function ImageUploader(props: SingleProps | MultipleProps) {
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept=".jpg,.jpeg,.png,.webp,.avif,image/jpeg,image/png,image/webp,image/avif"
         multiple={props.mode === "multiple"}
         className="hidden"
         onChange={(e) => handleFiles(e.target.files)}

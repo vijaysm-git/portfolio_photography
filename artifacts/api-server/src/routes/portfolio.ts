@@ -104,7 +104,7 @@ router.post("/portfolio", requireAdmin, async (req: Request, res: Response) => {
   res.status(201).json(serialize(row));
 });
 
-router.put(
+router.patch(
   "/portfolio/:id",
   requireAdmin,
   async (req: Request, res: Response) => {
@@ -150,7 +150,7 @@ router.delete(
       return;
     }
     await db.delete(portfolioTable).where(eq(portfolioTable.id, id));
-    res.json({ ok: true });
+    res.sendStatus(204);
   },
 );
 
