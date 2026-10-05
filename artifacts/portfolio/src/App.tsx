@@ -14,6 +14,7 @@ import AdminDashboard from "@/pages/AdminDashboard";
 import AdminPortfolio from "@/pages/AdminPortfolio";
 import AdminTestimonials from "@/pages/AdminTestimonials";
 import AdminInquiries from "@/pages/AdminInquiries";
+import AdminServices from "@/pages/AdminServices";
 import NotFound from "@/pages/not-found";
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
@@ -28,6 +29,7 @@ function Router() {
       <Route path="/admin/portfolio"><AdminPortfolio /></Route>
       <Route path="/admin/testimonials"><AdminTestimonials /></Route>
       <Route path="/admin/inquiries"><AdminInquiries /></Route>
+      <Route path="/admin/services"><AdminServices /></Route>
 
       <Route path="/"><PublicRoute><Home /></PublicRoute></Route>
       <Route path="/portfolio"><PublicRoute><Portfolio /></PublicRoute></Route>

@@ -103,6 +103,26 @@ export interface TestimonialInput {
   review: string;
 }
 
+export interface Service {
+  id: number;
+  title: string;
+  description: string;
+  image: string;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface ServiceInput {
+  /** @minLength 1 */
+  title: string;
+  /** @minLength 1 */
+  description: string;
+  /** @minLength 1 */
+  image: string;
+  /** @minimum 0 */
+  sortOrder: number;
+}
+
 export interface ContactSubmission {
   id: number;
   name: string;

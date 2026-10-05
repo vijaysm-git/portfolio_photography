@@ -14,11 +14,13 @@ import {
   LogOut,
   Camera,
   Loader2,
+  Aperture,
 } from "lucide-react";
 
 const NAV = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/portfolio", label: "Projects", icon: Images },
+  { href: "/admin/services", label: "Services", icon: Aperture },
   { href: "/admin/testimonials", label: "Testimonials", icon: MessageSquareQuote },
   { href: "/admin/inquiries", label: "Inquiries", icon: Inbox },
 ];
@@ -120,16 +122,37 @@ export function AdminLayout({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="md:hidden border-b border-border px-6 py-4 flex items-center justify-between" data-testid="header-admin-mobile">
-          <Link href="/admin" className="font-display text-xl">Lumière Admin</Link>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="text-sm text-muted-foreground"
-            data-testid="button-admin-logout-mobile"
-          >
-            Sign out
-          </button>
+        <header className="md:hidden border-b border-border px-5 py-4" data-testid="header-admin-mobile">
+          <div className="flex items-center justify-between">
+            <Link href="/admin" className="font-display text-xl">Lumière Admin</Link>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="text-sm text-muted-foreground"
+              data-testid="button-admin-logout-mobile"
+            >
+              Sign out
+            </button>
+          </div>
+          <nav className="mt-4 flex gap-1 overflow-x-auto" aria-label="Admin navigation">
+            {NAV.map((item) => {
+              const Icon = item.icon;
+              const active = location === item.href || (item.href !== "/admin" && location.startsWith(item.href));
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`inline-flex shrink-0 items-center gap-2 rounded-sm px-3 py-2 text-xs transition ${
+                    active ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground"
+                  }`}
+                  data-testid={`link-admin-mobile-${item.label.toLowerCase()}`}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
         </header>
         <main className="flex-1 p-6 lg:p-10 overflow-x-hidden">{children}</main>
       </div>

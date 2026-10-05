@@ -171,6 +171,64 @@ export const DeleteTestimonialParams = zod.object({
 });
 
 /**
+ * @summary List homepage services in display order
+ */
+export const ListServicesResponseItem = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  description: zod.string(),
+  image: zod.string(),
+  sortOrder: zod.number(),
+  createdAt: zod.coerce.date(),
+});
+export const ListServicesResponse = zod.array(ListServicesResponseItem);
+
+/**
+ * @summary Create a homepage service (admin)
+ */
+
+export const createServiceBodySortOrderMin = 0;
+
+export const CreateServiceBody = zod.object({
+  title: zod.string().min(1),
+  description: zod.string().min(1),
+  image: zod.string().min(1),
+  sortOrder: zod.number().min(createServiceBodySortOrderMin),
+});
+
+/**
+ * @summary Update a homepage service (admin)
+ */
+export const UpdateServiceParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const updateServiceBodySortOrderMin = 0;
+
+export const UpdateServiceBody = zod.object({
+  title: zod.string().min(1),
+  description: zod.string().min(1),
+  image: zod.string().min(1),
+  sortOrder: zod.number().min(updateServiceBodySortOrderMin),
+});
+
+export const UpdateServiceResponse = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  description: zod.string(),
+  image: zod.string(),
+  sortOrder: zod.number(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete a homepage service (admin)
+ */
+export const DeleteServiceParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
  * @summary List inquiry submissions (admin)
  */
 export const ListContactSubmissionsResponseItem = zod.object({

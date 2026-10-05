@@ -1,36 +1,16 @@
 import { Link } from "wouter";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import {
   useListFeaturedPortfolio,
   getListFeaturedPortfolioQueryKey,
   useListTestimonials,
   getListTestimonialsQueryKey,
+  useListServices,
+  getListServicesQueryKey,
 } from "@workspace/api-client-react";
-import { ArrowUpRight, Camera, Heart, Sparkles, Star } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight, Star } from "lucide-react";
 import { imageUrl } from "@/lib/imageUrl";
-
-const SERVICES = [
-  {
-    icon: Heart,
-    title: "Weddings",
-    body: "Quietly observed, gently directed. We document the day as it actually unfolds — vows, light, hands held a beat too long.",
-  },
-  {
-    icon: Sparkles,
-    title: "Events",
-    body: "Editorial coverage for galas, launches, and milestone celebrations. Stories told in light, not lists.",
-  },
-  {
-    icon: Camera,
-    title: "Portraits",
-    body: "Couples, families, founders, individuals. Sessions that feel like conversation and look like cinema.",
-  },
-  {
-    icon: Star,
-    title: "Studio & Editorial",
-    body: "Commercial, brand, and editorial production from concept through final frame. Built around your story.",
-  },
-];
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -44,9 +24,31 @@ export default function Home() {
   const testimonials = useListTestimonials({
     query: { queryKey: getListTestimonialsQueryKey() },
   });
+  const services = useListServices({
+    query: { queryKey: getListServicesQueryKey() },
+  });
+  const [visibleCount, setVisibleCount] = useState(1);
+  const [servicePage, setServicePage] = useState(0);
+
+  useEffect(() => {
+    const updateCount = () => {
+      setVisibleCount(window.innerWidth >= 1280 ? 3 : window.innerWidth >= 768 ? 2 : 1);
+    };
+    updateCount();
+    window.addEventListener("resize", updateCount);
+    return () => window.removeEventListener("resize", updateCount);
+  }, []);
 
   const featuredItems = featured.data ?? [];
   const heroFeature = featuredItems[0];
+  const serviceItems = [...(services.data ?? [])].sort((a, b) => a.sortOrder - b.sortOrder);
+  const servicePageCount = Math.max(1, Math.ceil(serviceItems.length / visibleCount));
+  const safeServicePage = Math.min(servicePage, servicePageCount - 1);
+  const visibleServices = serviceItems.slice(safeServicePage * visibleCount, (safeServicePage + 1) * visibleCount);
+
+  function moveServicePage(direction: number) {
+    setServicePage((current) => (current + direction + servicePageCount) % servicePageCount);
+  }
 
   return (
     <div className="bg-background">
@@ -130,7 +132,7 @@ export default function Home() {
           >
             <p className="text-xs tracking-[0.4em] uppercase text-accent mb-5">What we do</p>
             <h2 className="font-display text-4xl lg:text-5xl text-balance" data-testid="text-services-title">
-              Four practices, one sensibility.
+              A considered eye, whatever the story.
             </h2>
             <p className="mt-5 text-muted-foreground text-lg">
               Whether it's a quiet portrait or a thousand-guest evening, the approach is the same:
@@ -138,29 +140,68 @@ export default function Home() {
             </p>
           </motion.div>
 
-          <div className="grid gap-px bg-border md:grid-cols-2 lg:grid-cols-4 rounded-lg overflow-hidden border border-border">
-            {SERVICES.map((s, i) => {
-              const Icon = s.icon;
-              return (
-                <motion.div
-                  key={s.title}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, margin: "-60px" }}
-                  variants={fadeUp}
-                  transition={{ delay: i * 0.08 }}
-                  className="bg-card p-8 lg:p-10 flex flex-col gap-4"
-                  data-testid={`card-service-${s.title.toLowerCase().split(" ")[0]}`}
-                >
-                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-accent/40 text-accent">
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  <h3 className="font-display text-2xl">{s.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{s.body}</p>
-                </motion.div>
-              );
-            })}
-          </div>
+          {services.isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5" data-testid="services-loading">
+              {Array.from({ length: visibleCount }).map((_, index) => (
+                <div key={index} className="animate-pulse overflow-hidden rounded-sm border border-border bg-card">
+                  <div className="aspect-[5/3] bg-muted/60" />
+                  <div className="space-y-3 p-7"><div className="h-6 w-2/3 rounded bg-muted" /><div className="h-16 rounded bg-muted/70" /></div>
+                </div>
+              ))}
+            </div>
+          ) : services.isError ? (
+            <div className="border border-border bg-card/60 px-6 py-10 text-center" data-testid="services-error">
+              <p className="font-display text-2xl">Our stories are taking a moment.</p>
+              <p className="mt-2 text-sm text-muted-foreground">Please try again in a little while.</p>
+              <button type="button" onClick={() => services.refetch()} className="mt-5 text-xs uppercase tracking-[0.2em] text-accent underline underline-offset-4" data-testid="button-retry-services">Try again</button>
+            </div>
+          ) : serviceItems.length === 0 ? (
+            <div className="border border-dashed border-border px-6 py-14 text-center" data-testid="services-empty">
+              <p className="font-display text-2xl">New stories are taking shape.</p>
+              <p className="mt-2 text-sm text-muted-foreground">Our services will be here soon.</p>
+            </div>
+          ) : (
+            <div className="space-y-7" data-testid="services-carousel">
+              <div
+                className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3"
+                aria-live="polite"
+                aria-atomic="true"
+                onKeyDown={(event) => {
+                  if (event.key === "ArrowLeft") moveServicePage(-1);
+                  if (event.key === "ArrowRight") moveServicePage(1);
+                }}
+                data-testid="service-carousel-items"
+              >
+                {visibleServices.map((service) => (
+                  <article key={service.id} className="group overflow-hidden border border-border bg-card" data-testid={`card-service-${service.id}`}>
+                    <div className="relative aspect-[5/3] overflow-hidden bg-muted">
+                      <img src={imageUrl(service.image)} alt={service.title} className="h-full w-full object-cover transition-transform duration-700 motion-reduce:transition-none group-hover:scale-[1.035]" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-background/35 to-transparent" />
+                    </div>
+                    <div className="p-6 lg:p-8">
+                      <p className="mb-3 text-[10px] tracking-[0.28em] uppercase text-accent">Lumière / {String(service.sortOrder + 1).padStart(2, "0")}</p>
+                      <h3 className="font-display text-3xl" data-testid={`text-service-title-${service.id}`}>{service.title}</h3>
+                      <p className="mt-3 text-sm leading-relaxed text-muted-foreground" data-testid={`text-service-description-${service.id}`}>{service.description}</p>
+                    </div>
+                  </article>
+                ))}
+              </div>
+              <div className="flex items-center justify-between border-t border-border pt-5">
+                <span className="font-mono text-xs tracking-[0.14em] text-muted-foreground" data-testid="text-services-pagination">
+                  {String(safeServicePage + 1).padStart(2, "0")} <span className="mx-2 text-accent">/</span> {String(servicePageCount).padStart(2, "0")}
+                </span>
+                <div className="flex items-center gap-2">
+                  <button type="button" onClick={() => moveServicePage(-1)} aria-label="Previous services" disabled={servicePageCount <= 1} className="inline-flex h-11 w-11 items-center justify-center border border-border transition hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-35" data-testid="button-previous-services"><ArrowLeft className="h-4 w-4" /></button>
+                  <div className="flex items-center gap-2 px-2" aria-label="Choose services page">
+                    {Array.from({ length: servicePageCount }).map((_, index) => (
+                      <button key={index} type="button" aria-label={`Go to services page ${index + 1}`} aria-current={safeServicePage === index ? "page" : undefined} onClick={() => setServicePage(index)} className={`h-2 transition-all motion-reduce:transition-none ${safeServicePage === index ? "w-8 bg-accent" : "w-2 bg-border hover:bg-accent/60"}`} data-testid={`button-services-page-${index + 1}`} />
+                    ))}
+                  </div>
+                  <button type="button" onClick={() => moveServicePage(1)} aria-label="Next services" disabled={servicePageCount <= 1} className="inline-flex h-11 w-11 items-center justify-center border border-border transition hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-35" data-testid="button-next-services"><ArrowRight className="h-4 w-4" /></button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

@@ -22,6 +22,8 @@ export * from "./portfolioInput";
 export * from "./portfolioInputCategory";
 export * from "./portfolioItem";
 export * from "./portfolioItemCategory";
+export * from "./service";
+export * from "./serviceInput";
 export * from "./testimonial";
 export * from "./testimonialInput";
 export * from "./uploadUrlRequest";
