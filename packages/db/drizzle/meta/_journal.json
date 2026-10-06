@@ -1,0 +1,41 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1791200000000,
+      "tag": "0000_admin_accounts",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791213000000,
+      "tag": "0001_homepage_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791220000000,
+      "tag": "0002_admin_security_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791225000000,
+      "tag": "0003_recoverable_content_deletes",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791230000000,
+      "tag": "0004_storage_upload_reservations",
+      "breakpoints": true
+    }
+  ]
+}

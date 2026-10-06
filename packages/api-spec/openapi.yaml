@@ -1,0 +1,1171 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Photography portfolio API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: Portfolio
+    description: Portfolio projects
+  - name: Testimonials
+    description: Client testimonials
+  - name: Services
+    description: Studio services shown on the homepage
+  - name: Contact
+    description: Inquiry submissions
+  - name: Admin
+    description: Admin authentication and dashboard
+  - name: Storage
+    description: Object storage upload and serving endpoints.
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /portfolio:
+    get:
+      operationId: listPortfolio
+      tags: [Portfolio]
+      summary: List portfolio projects
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [wedding, events, portrait, studio]
+      responses:
+        "200":
+          description: Portfolio items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PortfolioItem"
+    post:
+      operationId: createPortfolioItem
+      tags: [Portfolio]
+      summary: Create a portfolio project (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PortfolioInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioItem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /portfolio/featured:
+    get:
+      operationId: listFeaturedPortfolio
+      tags: [Portfolio]
+      summary: List featured portfolio projects (top 6)
+      responses:
+        "200":
+          description: Featured items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PortfolioItem"
+
+  /portfolio/categories:
+    get:
+      operationId: listPortfolioCategories
+      tags: [Portfolio]
+      summary: List categories with counts
+      responses:
+        "200":
+          description: Category counts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategoryCount"
+
+  /portfolio/{id}:
+    get:
+      operationId: getPortfolioItem
+      tags: [Portfolio]
+      summary: Get a portfolio project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioItem"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+    patch:
+      operationId: updatePortfolioItem
+      tags: [Portfolio]
+      summary: Update a portfolio project (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PortfolioInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioItem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+    delete:
+      operationId: deletePortfolioItem
+      tags: [Portfolio]
+      summary: Move a portfolio project to Recently deleted (admin)
+      description: The project can be restored for 15 days before permanent deletion.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Moved to Recently deleted
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /testimonials:
+    get:
+      operationId: listTestimonials
+      tags: [Testimonials]
+      summary: List testimonials
+      responses:
+        "200":
+          description: Testimonials
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Testimonial"
+    post:
+      operationId: createTestimonial
+      tags: [Testimonials]
+      summary: Create a testimonial (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TestimonialInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Testimonial"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /testimonials/{id}:
+    delete:
+      operationId: deleteTestimonial
+      tags: [Testimonials]
+      summary: Move a testimonial to Recently deleted (admin)
+      description: The testimonial can be restored for 15 days before permanent deletion.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Moved to Recently deleted
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /services:
+    get:
+      operationId: listServices
+      tags: [Services]
+      summary: List homepage services in display order
+      responses:
+        "200":
+          description: Services
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Service"
+    post:
+      operationId: createService
+      tags: [Services]
+      summary: Create a homepage service (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /services/{id}:
+    put:
+      operationId: updateService
+      tags: [Services]
+      summary: Update a homepage service (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+    delete:
+      operationId: deleteService
+      tags: [Services]
+      summary: Move a homepage service to Recently deleted (admin)
+      description: The service can be restored for 15 days before permanent deletion.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Moved to Recently deleted
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /homepage/settings:
+    get:
+      operationId: getHomepageSettings
+      tags: [Services]
+      summary: Get public homepage media settings
+      responses:
+        "200":
+          description: Homepage media settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HomepageSettings"
+    patch:
+      operationId: updateHomepageSettings
+      tags: [Admin]
+      summary: Update homepage media settings (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HomepageSettingsInput"
+      responses:
+        "200":
+          description: Updated homepage media settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HomepageSettings"
+        "400":
+          description: Invalid homepage settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /contact:
+    get:
+      operationId: listContactSubmissions
+      tags: [Contact]
+      summary: List inquiry submissions (admin)
+      responses:
+        "200":
+          description: Contact submissions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ContactSubmission"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+    post:
+      operationId: createContactSubmission
+      tags: [Contact]
+      summary: Submit a contact inquiry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactInput"
+      responses:
+        "201":
+          description: Submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactSubmission"
+
+  /contact/{id}:
+    delete:
+      operationId: deleteContactSubmission
+      tags: [Contact]
+      summary: Delete a contact submission (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /admin/login:
+    post:
+      operationId: adminLogin
+      tags: [Admin]
+      summary: Sign in as the studio admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminLoginInput"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminSession"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "429":
+          description: Too many sign-in attempts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /admin/logout:
+    post:
+      operationId: adminLogout
+      tags: [Admin]
+      summary: Sign out
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+
+  /admin/credentials:
+    patch:
+      operationId: changeAdminCredentials
+      tags: [Admin]
+      summary: Change the current admin email or password
+      description: Requires an authenticated admin session and the current password. All sessions are revoked after a successful change.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangeAdminCredentialsInput"
+      responses:
+        "200":
+          description: Credentials changed and sessions revoked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: Unauthorized or current password is incorrect
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "409":
+          description: Email address is already in use
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /admin/session-settings:
+    get:
+      operationId: getAdminSessionSettings
+      tags: [Admin]
+      summary: Get admin session settings
+      responses:
+        "200":
+          description: Session settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminSessionSettings"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+    patch:
+      operationId: updateAdminSessionSettings
+      tags: [Admin]
+      summary: Update admin session settings
+      description: Changes apply to sessions created after the setting is saved. Existing sessions retain their current expiry.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminSessionSettingsInput"
+      responses:
+        "200":
+          description: Updated session settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminSessionSettings"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /admin/recently-deleted:
+    get:
+      operationId: listRecentlyDeletedContent
+      tags: [Admin]
+      summary: List recoverable deleted content
+      description: Lists deleted portfolio projects, services, and testimonials that have not passed their 15-day recovery period.
+      responses:
+        "200":
+          description: Recently deleted records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ArchivedContentItem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /admin/recently-deleted/restore:
+    post:
+      operationId: restoreArchivedContent
+      tags: [Admin]
+      summary: Restore a recently deleted record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RestoreArchivedContentInput"
+      responses:
+        "200":
+          description: Record restored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+        "400":
+          description: Invalid record type or ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "404":
+          description: Record not found or its recovery period has ended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /admin/recently-deleted/bulk-archive:
+    post:
+      operationId: bulkArchiveContent
+      tags: [Admin]
+      summary: Archive selected content records
+      description: Moves up to 10000 active records of one content type to Recently deleted for 15 days.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkArchiveContentInput"
+      responses:
+        "200":
+          description: Number of records moved to Recently deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkArchiveResult"
+        "400":
+          description: Invalid type or IDs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /admin/me:
+    get:
+      operationId: getAdminSession
+      tags: [Admin]
+      summary: Get current admin session
+      responses:
+        "200":
+          description: Session info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminSession"
+
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [Admin]
+      summary: Dashboard counts (admin)
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /storage/uploads/request-url:
+    post:
+      tags: [Storage]
+      operationId: requestUploadUrl
+      summary: Request a signed image upload
+      description: Requires an admin session. Returns a short-lived S3-compatible PUT URL and a stable public URL for saving with the associated record.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestUploadUrlInput"
+      responses:
+        "200":
+          description: Signed upload URL and stable public object URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestUploadUrl"
+        "400":
+          description: Invalid image upload request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "502":
+          description: Upload signing failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "503":
+          description: Object storage is not configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "507":
+          description: Storage upload budget reached
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /storage/usage:
+    get:
+      tags: [Storage]
+      operationId: getStorageUsage
+      summary: Get measured storage usage (admin)
+      description: Reports Supabase Storage object bytes plus active signed upload reservations. It does not measure public-read egress.
+      responses:
+        "200":
+          description: Measured storage usage and upload budget
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StorageUsage"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "503":
+          description: Storage usage cannot be measured safely
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    OkResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+      required: [ok]
+
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    HomepageSettings:
+      type: object
+      additionalProperties: false
+      required: [heroImage]
+      properties:
+        heroImage:
+          type: [string, "null"]
+          format: uri
+
+    HomepageSettingsInput:
+      type: object
+      additionalProperties: false
+      required: [heroImage]
+      properties:
+        heroImage:
+          type: [string, "null"]
+          format: uri
+
+    RequestUploadUrlInput:
+      type: object
+      additionalProperties: false
+      required: [purpose, contentType, size]
+      properties:
+        purpose:
+          type: string
+          enum: [portfolio, services, testimonials, hero]
+        contentType:
+          type: string
+          enum: [image/webp]
+        size:
+          type: integer
+          minimum: 1
+          maximum: 2097152
+
+    RequestUploadUrl:
+      type: object
+      additionalProperties: false
+      required: [uploadUrl, contentType, publicUrl, storageUsage]
+      properties:
+        uploadUrl:
+          type: string
+          format: uri
+        contentType:
+          type: string
+          enum: [image/webp]
+        publicUrl:
+          type: string
+          format: uri
+        storageUsage:
+          $ref: "#/components/schemas/StorageUsage"
+
+    StorageUsage:
+      type: object
+      additionalProperties: false
+      required: [usedBytes, warningThresholdBytes, uploadBudgetBytes, warning]
+      properties:
+        usedBytes:
+          type: integer
+          minimum: 0
+        warningThresholdBytes:
+          type: integer
+          enum: [500000000]
+        uploadBudgetBytes:
+          type: integer
+          enum: [700000000]
+        warning:
+          type: boolean
+
+    PortfolioItem:
+      type: object
+      required:
+        [
+          id,
+          title,
+          category,
+          coverImage,
+          images,
+          description,
+          featured,
+          createdAt,
+        ]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        category:
+          type: string
+          enum: [wedding, events, portrait, studio]
+        coverImage:
+          type: string
+          description: Object path or external URL for the cover image
+        images:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+        featured:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    PortfolioInput:
+      type: object
+      required: [title, category, coverImage, images, description]
+      properties:
+        title:
+          type: string
+          minLength: 1
+        category:
+          type: string
+          enum: [wedding, events, portrait, studio]
+        coverImage:
+          type: string
+          minLength: 1
+        images:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+        featured:
+          type: boolean
+
+    CategoryCount:
+      type: object
+      required: [category, count]
+      properties:
+        category:
+          type: string
+          enum: [wedding, events, portrait, studio]
+        count:
+          type: integer
+
+    Testimonial:
+      type: object
+      required: [id, name, rating, review, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        photo:
+          type: ["string", "null"]
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        review:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    TestimonialInput:
+      type: object
+      required: [name, rating, review]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        photo:
+          type: ["string", "null"]
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        review:
+          type: string
+          minLength: 1
+
+    Service:
+      type: object
+      required: [id, title, description, image, sortOrder, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        image:
+          type: string
+        sortOrder:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    ServiceInput:
+      type: object
+      required: [title, description, image, sortOrder]
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+          minLength: 1
+        image:
+          type: string
+          minLength: 1
+        sortOrder:
+          type: integer
+          minimum: 0
+
+    ContactSubmission:
+      type: object
+      required: [id, name, phone, message, eventType, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: ["string", "null"]
+        message:
+          type: string
+        eventType:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    ContactInput:
+      type: object
+      required: [name, phone, message, eventType]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        phone:
+          type: string
+          minLength: 1
+        email:
+          type: ["string", "null"]
+        message:
+          type: string
+          minLength: 1
+        eventType:
+          type: string
+          minLength: 1
+
+    AdminLoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          minLength: 1
+        password:
+          type: string
+          minLength: 1
+          maxLength: 128
+
+    ChangeAdminCredentialsInput:
+      type: object
+      required: [currentPassword]
+      properties:
+        currentPassword:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+        newPassword:
+          type: string
+          minLength: 12
+          maxLength: 128
+
+    AdminSession:
+      type: object
+      required: [authenticated]
+      properties:
+        authenticated:
+          type: boolean
+        email:
+          type: ["string", "null"]
+
+    AdminSessionSettingsInput:
+      type: object
+      required: [sessionDurationHours]
+      properties:
+        sessionDurationHours:
+          type: integer
+          enum: [12, 24]
+
+    AdminSessionSettings:
+      type: object
+      required: [sessionDurationHours]
+      properties:
+        sessionDurationHours:
+          type: integer
+          enum: [12, 24]
+
+    ArchivedContentItem:
+      type: object
+      required: [type, id, label, image, deletedAt, expiresAt]
+      properties:
+        type:
+          type: string
+          enum: [portfolio, service, testimonial]
+        id:
+          type: integer
+        label:
+          type: string
+        image:
+          type: ["string", "null"]
+        deletedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+
+    RestoreArchivedContentInput:
+      type: object
+      required: [type, id]
+      properties:
+        type:
+          type: string
+          enum: [portfolio, service, testimonial]
+        id:
+          type: integer
+          minimum: 1
+
+    BulkArchiveContentInput:
+      type: object
+      required: [type, ids]
+      properties:
+        type:
+          type: string
+          enum: [portfolio, service, testimonial]
+        ids:
+          type: array
+          minItems: 1
+          maxItems: 10000
+          items:
+            type: integer
+            minimum: 1
+
+    BulkArchiveResult:
+      type: object
+      required: [archivedCount]
+      properties:
+        archivedCount:
+          type: integer
+          minimum: 0
+
+    AdminStats:
+      type: object
+      required: [portfolioCount, testimonialCount, contactCount, categoryCounts]
+      properties:
+        portfolioCount:
+          type: integer
+        testimonialCount:
+          type: integer
+        contactCount:
+          type: integer
+        categoryCounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryCount"
